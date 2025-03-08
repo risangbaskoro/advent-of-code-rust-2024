@@ -10,13 +10,7 @@ enum Direction {
     Left,
 }
 
-trait DirectionTrait {
-    fn from_char(c: char) -> Self;
-    fn to_ivec(&self) -> IVec2;
-    fn next_pos(&self, pos: IVec2) -> IVec2;
-}
-
-impl DirectionTrait for Direction {
+impl Direction {
     fn from_char(c: char) -> Self {
         match c {
             '^' => Self::Up,
@@ -29,15 +23,11 @@ impl DirectionTrait for Direction {
 
     fn to_ivec(&self) -> IVec2 {
         match self {
-            Direction::Up => IVec2::new(-1, 0),
-            Direction::Right => IVec2::new(0, 1),
-            Direction::Down => IVec2::new(1, 0),
-            Direction::Left => IVec2::new(0, -1),
+            Direction::Up => IVec2::NEG_Y,
+            Direction::Right => IVec2::X,
+            Direction::Down => IVec2::Y,
+            Direction::Left => IVec2::NEG_X,
         }
-    }
-
-    fn next_pos(&self, pos: IVec2) -> IVec2 {
-        pos + self.to_ivec()
     }
 }
 
@@ -58,7 +48,7 @@ fn determine_guard_pos_dir(
             let char =
                 row.chars().collect::<Vec<char>>()[x];
             dir = Direction::from_char(char);
-            pos = (y, x);
+            pos = (x, y);
             break;
         };
     }
@@ -84,7 +74,7 @@ pub fn process(input: &str) -> miette::Result<String> {
         map.first().unwrap().len() as i32,
     );
 
-    let mut next_pos = direction.next_pos(pos);
+    let mut next_pos = pos + direction.to_ivec();
     let mut visited = vec![pos, next_pos];
 
     while next_pos.x >= 0
@@ -92,9 +82,9 @@ pub fn process(input: &str) -> miette::Result<String> {
         && next_pos.y < map_height
         && next_pos.x < map_width
     {
-        let next_char =
-            map[next_pos.x as usize][next_pos.y as usize];
-        if next_char == '#' {
+        if map[next_pos.y as usize][next_pos.x as usize]
+            == '#'
+        {
             direction = match direction {
                 Direction::Up => Direction::Right,
                 Direction::Right => Direction::Down,
@@ -107,7 +97,7 @@ pub fn process(input: &str) -> miette::Result<String> {
             }
             pos = next_pos
         }
-        next_pos = direction.next_pos(pos);
+        next_pos = pos + direction.to_ivec();
     }
 
     let result = visited.len();
@@ -150,7 +140,7 @@ mod tests {
 #.........
 ......#...";
         assert_eq!(
-            (IVec2::new(6, 4), Direction::Up),
+            (IVec2::new(4, 6), Direction::Up),
             determine_guard_pos_dir(input)
         );
 
@@ -165,7 +155,7 @@ mod tests {
 #.........
 ......#...";
         assert_eq!(
-            (IVec2::new(6, 5), Direction::Right),
+            (IVec2::new(5, 6), Direction::Right),
             determine_guard_pos_dir(input)
         );
 
