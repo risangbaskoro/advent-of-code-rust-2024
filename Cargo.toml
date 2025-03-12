@@ -1,8 +1,10 @@
 [workspace]
-resolver = "2"
-
-members = ["day-*"]
+members = [
+    "day-*",
+    "day-09",
+]
 default-members = ["day-*"]
+resolver = "2"
 
 [workspace.dependencies]
 divan = "0.1.7"
